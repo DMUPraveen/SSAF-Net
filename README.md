@@ -1,5 +1,7 @@
 # SSAF-Net: A Spatial-Spectral Adaptive Fusion Network for Hyperspectral Unmixing with Endmember Variability
 
+Please kindly cite the papers if this code is useful and helpful for your research.
+
 ```
 @ARTICLE{10896744,
   author={Gao, Wei and Yang, Jingyu and Zhang, Yu and Akoudad, Youssef and Chen, Jie},
