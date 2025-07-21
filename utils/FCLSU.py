@@ -6,8 +6,8 @@ from scipy.optimize import nnls
 def FCLSU(M, Y, sigma=1):
     P = M.shape[1]
     N = Y.shape[1]
-    M = sp.vstack((sigma * M, sp.ones((1, P)) ))
-    Y = sp.vstack((sigma * Y, sp.ones((1, N)) ))
+    M = np.vstack((sigma * M, np.ones((1, P)) ))
+    Y = np.vstack((sigma * Y, np.ones((1, N)) ))
     A_hat = np.zeros((P, N))
 
     for i in np.arange(N):
