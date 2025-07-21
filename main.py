@@ -12,11 +12,25 @@ from utils.loadhsi import loadhsi
 from utils.hyperVca import hyperVca
 from utils.result_em import result_em
 from scipy.io import loadmat
+import argparse
+import utilities
+
+parser = argparse.ArgumentParser(
+                    prog='SSAFNET',
+                    description='Does HSU',
+                    epilog='Modified by DMUPraveen')
+
+parser.add_argument('-e','--epoch',type=int, default=2000)
+parser.add_argument('-d','--dataset',default='samson')
+
+
+
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 DATAPATH= "../hsi_datasets/"
+args = parser.parse_args()
 
-dataset = "samson"
+dataset = args.dataset
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print('training on', device)
@@ -25,7 +39,7 @@ cases = ['ex2', 'ridge', 'houston']
 case = cases[1]
 rCol = 100
 nCol = 100
-epochs = 2000
+epochs = int(args.epoch)
 z_dim = 4
 
 
@@ -156,17 +170,39 @@ def train(lr=0.005, lambda_y2=0.04, lambda_kl=0.001, lambda_pre=10, lambda_sad=5
             EM_hat = np.transpose(EM_hat, (2, 1, 0))
             armse_y, asad_y, armse_a, armse_em, asad_em = result_em(EM_hat, M_true, A_hat, A_true, Y, Y_hat)
 
-        return armse_y, asad_y, armse_a, armse_em, asad_em, toc - tic
-
+        return EM_hat,M_true,A_hat,A_true
 
 if __name__ == '__main__':
-    armse_y, asad_y, armse_a, armse_em, asad_em, tim = train()
+    EM_hat,M_true,A_hat,A_true = train()
+    print(f"{EM_hat.shape=},{M_true.shape=},{A_hat.shape=},{A_true.shape=}")
 
-    print('*' * 70)
-    print('time elapsed:', tim)
-    print('RESULTS:')
-    print('aRMSE_Y:', armse_y)
-    print('aSAD_Y:', asad_y)
-    print('aRMSE_a:', armse_a)
-    print('aRMSE_M', armse_em)
-    print('aSAD_em', asad_em)
+    #This creates pixel wise endmembers so for now we will take the mean as the predicted endmeber
+    M_pred = EM_hat.mean(axis=2)
+    print(M_pred.shape)
+    A_pred = A_hat
+
+    #permuation correction
+    A_corrected,M_corrected = utilities.correct_permuation(A_pred=A_pred,A_true=A_true,M_pred=M_pred,M_true=M_true)
+    H = int(loadmat(os.path.join(DATAPATH,f"{dataset}.mat"))['HW'].ravel()[0])
+    output_path = "outputs"
+    save_path = os.path.join(output_path,dataset)
+    os.makedirs(save_path,exist_ok=True)
+    utilities.plot_figures(
+        A_true=A_true,
+        A_pred =A_corrected ,
+        M_true=M_true,
+        M_pred = M_corrected,
+        H = H,
+        save_path = save_path
+    )
+    utilities.calculate_errors(
+        A_true=A_true,
+        A_pred =A_corrected ,
+        M_true=M_true,
+        M_pred = M_corrected,
+        save_path = save_path
+        
+    )
+    
+
+    
