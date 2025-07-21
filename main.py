@@ -11,8 +11,12 @@ from utils.FCLSU import FCLSU
 from utils.loadhsi import loadhsi
 from utils.hyperVca import hyperVca
 from utils.result_em import result_em
+from scipy.io import loadmat
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+DATAPATH= "../hsi_datasets/"
+
+dataset = "samson"
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print('training on', device)
@@ -38,6 +42,22 @@ def weights_init(m):
 def train(lr=0.005, lambda_y2=0.04, lambda_kl=0.001, lambda_pre=10, lambda_sad=5, lambda_vol=10):
 
     Y, A_true, P, M_true = loadhsi(case)
+    print(Y.shape,A_true.shape,P,M_true.shape)
+    dic = loadmat(os.path.join(DATAPATH,f"{dataset}.mat"))
+    YYY = dic["Y"].astype(np.float32)
+    AAA = dic["A"].astype(np.float32)
+    MMM = dic["M"].astype(np.float32)
+    Y = YYY.copy()
+    P = AAA.shape[0]
+    HHH,WWW = map(int,list(dic["HW"].ravel()))
+    rCol = HHH
+    nCol = WWW
+    A_true = AAA.copy() 
+    M_true = MMM.copy()
+    print(Y.shape,A_true.shape,P,M_true.shape)
+    # assert(False) 
+
+
     vca_em, _, snrEstimate = hyperVca(Y, P)
     vca_em_l = vca_em.T
     M0 = np.reshape(vca_em_l, [1, vca_em_l.shape[1], vca_em_l.shape[0]]).astype('float32')
