@@ -27,7 +27,8 @@ def hyperVca(M, q):
 
     SNRth = 18 + 10 * np.log(q)
 
-    if SNR > SNRth:
+    # if SNR > SNRth:
+    if True:
         d = q
 
         U, S, V = np.linalg.svd(M @ M.T / N)
@@ -73,7 +74,8 @@ def hyperVca(M, q):
         indicies[i] = k
 
     indicies = indicies.astype('int')
-    if (SNR > SNRth):
+    # if (SNR > SNRth):
+    if(True):
         U = Ud @ Xd[:, indicies.T[0]]
     else:
         U = Ud @ Xd[:, indicies.T[0]] + r_bar
